@@ -19,7 +19,13 @@ def js_info_dict():
             continue
         if settings.JS_I18N_APPS_EXCLUDE and app in settings.JS_I18N_APPS_EXCLUDE:
             continue
-        module = sys.modules[app]
+        try:
+            module = sys.modules[app]
+        except KeyError:
+            # There is an unknown ordering/importing issue that causes some apps
+            # to not be imported by this time. Make sure they are before continuing
+            # on.
+            module = __import__(app)
         for path in module.__path__:
             if isdir(join(path, 'locale')):
                 js_info_dict['packages'].append(app)
